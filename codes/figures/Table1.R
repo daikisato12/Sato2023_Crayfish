@@ -1,0 +1,66 @@
+
+#### Table 1 ####
+##### get list of genes CAFE analysis ####
+df_cafe_p <- read.table("../../ザリガニ論文_Sato_Makino/data/cafe/withoutPvir/raw_data/results_cafe5_noPvir/Base_branch_probabilities.txt", header = TRUE) %>%
+  pivot_longer(cols = !GeneID, names_to = "node", values_to = "pval")
+df_cafe_change <- bind_rows(read.table("../../ザリガニ論文_Sato_Makino/data/cafe/withoutPvir/raw_data/results_cafe5_noPvir/Base_change.txt", header = TRUE)) %>%
+  pivot_longer(cols = !GeneID, names_to = "node", values_to = "change")
+df_cafe <- inner_join(df_cafe_p %>%
+                        filter(pval < 0.05), 
+                      df_cafe_change) %>%
+  mutate(sign = ifelse(change < 0, "-", ifelse(change > 0, "+", 0))) %>%
+  dplyr::select(!change) %>%
+  group_by(node, sign) %>%
+  summarize(n = n())
+
+
+df_cafe_Pcla_exp <- inner_join(df_cafe_p %>%
+                                 filter(pval < 0.05), 
+                               df_cafe_change) %>%
+  mutate(sign = ifelse(change < 0, "-", ifelse(change > 0, "+", 0))) %>%
+  filter(node == "Pcla.7", sign == "+")
+
+
+##### get list of genes DEG analysis ####
+# list of Sendai specific DEGs
+list_degs_sendai <- read.delim("/Users/dsato/Dropbox/研究室/投稿論文/2020/ザリガニ論文/ザリガニ論文_Sato_Makino/figures/tmp/TableS2_withinDEGs.tsv", header = TRUE, sep = "\t") %>%
+  filter(SendaiDay0_SendaiDay7_qval < 0.05, 
+         is.na(SapporoDay0_SapporoDay7_qval))
+
+# list of Sapporo specific DEGs
+list_degs_sapporo <- read.delim("/Users/dsato/Dropbox/研究室/投稿論文/2020/ザリガニ論文/ザリガニ論文_Sato_Makino/figures/tmp/TableS2_withinDEGs.tsv", header = TRUE, sep = "\t") %>%
+  filter(is.na(SendaiDay0_SendaiDay7_qval), 
+         SapporoDay0_SapporoDay7_qval < 0.05 | SapporoDay0_SapporoDay31_qval  < 0.05)
+
+list_degs_DEGs <- read.delim("/Users/dsato/Dropbox/研究室/投稿論文/2020/ザリガニ論文/ザリガニ論文_Sato_Makino/figures/tmp/TableS2_withinDEGs.tsv", header = TRUE, sep = "\t") %>%
+  filter(SendaiDay0_SendaiDay7_qval < 0.05 |
+           SapporoDay0_SapporoDay7_qval < 0.05 | 
+           SapporoDay0_SapporoDay31_qval  < 0.05 |
+           SapporoDay7_SapporoDay31_qval  < 0.05)
+
+df_cafe_num <- read.table("../../ザリガニ論文_Sato_Makino/data/cafe/withoutPvir/raw_data/results_cafe5_noPvir/Base_count.txt", header = TRUE) %>%
+  pivot_longer(cols = !GeneID, names_to = "node", values_to = "num")
+
+
+list_degs_Pcla_exp <- bind_rows(list_degs_sendai, list_degs_sapporo)
+# write.table(list_degs_sendai_exp, "../../ザリガニ論文_Sato_Makino/figures/tmp/Table1_sendai_exp.tsv", append = F, quote = F, row.names = F, sep = "\t")
+
+list_degs_Pcla_exp2 <- list_degs_DEGs %>% #list_degs_Pcla_exp %>%
+  dplyr::select(FlyID, GeneID, GeneName, AnnotatedName) %>%
+  group_by(FlyID, GeneName) %>%
+  summarize(DEG = n(),
+            CrayfishID = paste(GeneID, collapse = ", ")) %>%
+  inner_join(df_cafe_Pcla_exp %>%
+               dplyr::rename(FlyID = GeneID)) %>%
+  inner_join(df_cafe_num %>%
+               dplyr::rename(FlyID = GeneID)) %>%
+  dplyr::select(FlyID, GeneName, DEG, change, num, CrayfishID) %>%
+  dplyr::rename(IncreaseNumGene = change,
+                NumGene = num) %>%
+  filter(DEG > 4)
+
+write.table(list_degs_Pcla_exp2 , 
+            "../../ザリガニ論文_Sato_Makino/figures/tmp/Table1_DEGs_exp.tsv", append = F, quote = F, row.names = F, sep = "\t")
+
+
+
