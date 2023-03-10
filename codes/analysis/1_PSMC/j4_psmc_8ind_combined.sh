@@ -8,13 +8,13 @@ echo running on `hostname`
 echo starting at
 date
 
-FASTQDIR=/home/daikisato177/Projects/Crayfish/Data/One_ind
+FASTQDIR=${data}/${fastq_afterQC_1ind}
 cd $FASTQDIR
 
 FILENAME=`ls -1 *_R1.fastq.gz | awk -v line=$SGE_TASK_ID '{if (NR == line) print $0}'`
 SAMPLE=$(echo $FILENAME | rev | cut -c 13- | rev | uniq)
 
-WORK_DIR=/home/daikisato177/Projects/Crayfish/Data_2022/Mapped_reads_1ind/PSMC
+WORK_DIR=${data}/${mapped_reads_1ind}/PSMC
 cd $WORK_DIR
 
 cat ${SAMPLE}.consensus.psmc ${SAMPLE}.filtered.{1..100}.bs.psmc > ${SAMPLE}.filtered.combined.psmc

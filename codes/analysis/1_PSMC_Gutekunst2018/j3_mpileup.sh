@@ -8,17 +8,17 @@ echo running on `hostname`
 echo starting at
 date
 
-FASTQDIR=/home/daikisato177/Projects/Crayfish/Data_2022/Gutekunst2018/post_fastp
+FASTQDIR=${data}/Gutekunst2018/post_fastp
 cd $FASTQDIR
 
 FILENAME=`ls -1 *_1.fq.gz | xargs -n1 basename | awk -v line=${SGE_TASK_ID} '{if (NR == line) print $0}'`
 SAMPLE=$(echo ${FILENAME} | rev | cut -c 9- | rev | uniq)
 
-REF=/home/daikisato177/Projects/Crayfish/Data_2022/Ref_Xu2021/GCA_020424385.1_ASM2042438v1_genomic_index_changed.fa
+REF=${data}/${ref}/GCA_020424385.2_ASM2042438v2_genomic_index_changed.fa
 FASTQ1=${FASTQDIR}/${SAMPLE}_1.fq.gz
 FASTQ2=${FASTQDIR}/${SAMPLE}_2.fq.gz
 
-WORK_DIR=/home/daikisato177/Projects/Crayfish/Data_2022/Gutekunst2018/Mapped_reads
+WORK_DIR=${data}/Gutekunst2018/Mapped_reads
 cd $WORK_DIR
 
 samtools mpileup -C 50 -q 20 -Q 20 -d 200 -u -f $REF ${SAMPLE}.sort.filtered.bam |\

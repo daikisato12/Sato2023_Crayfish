@@ -8,7 +8,7 @@ echo running on `hostname`
 echo starting at
 date
 
-FASTQDIR=/home/daikisato177/Projects/Crayfish/Data_2022/Gutekunst2018
+FASTQDIR=${data}/Gutekunst2018
 cd $FASTQDIR
 
 FILENAME=`ls -1 ./rawdata/*_1.fastq.gz | xargs -n1 basename | awk -v line=${SGE_TASK_ID} '{if (NR == line) print $0}'`
@@ -17,15 +17,8 @@ SAMPLE=$(echo ${FILENAME} | rev | cut -c 12- | rev | uniq)
 FASTQ1=${FASTQDIR}/rawdata/${SAMPLE}_1.fastq.gz
 FASTQ2=${FASTQDIR}/rawdata/${SAMPLE}_2.fastq.gz
 
-## fastx-toolkit
-FASTQX1=${FASTQDIR}/post_fastx_toolkit/${SAMPLE}_1.fastq.gz
-FASTQX2=${FASTQDIR}/post_fastx_toolkit/${SAMPLE}_2.fastq.gz
-
-singularity exec /usr/local/biotools/f/fastx_toolkit\:0.0.14--2 fastq_quality_filter –v -Q 33 -q 30 -p 50 -i ${FASTQ1} -o ${FASTQX1}
-singularity exec /usr/local/biotools/f/fastx_toolkit\:0.0.14--2 fastq_quality_filter –v -Q 33 -q 30 -p 50 -i ${FASTQ2} -o ${FASTQX2}
-
 ## fastp
-fastp -i ${FASTQX1} -I ${FASTQX2} -3\
+fastp -i ${FASTQ1} -I ${FASTQ2} -3\
 	-o ./post_fastp/${SAMPLE}_1.fq.gz -O ./post_fastp/${SAMPLE}_2.fq.gz\
 	-h ./post_fastp/report_${SAMPLE}.html -q 30 -u 30 -n 10 -l 20 -w 10 -t 1 -T 1
 

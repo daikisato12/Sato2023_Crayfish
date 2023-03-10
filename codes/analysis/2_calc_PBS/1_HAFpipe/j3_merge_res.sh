@@ -7,7 +7,10 @@ echo running on `hostname`
 echo starting at
 date
 
-bwa-mem2 index ${data}/${ref}/GCA_020424385.2_ASM2042438v2_genomic_index_changed.fa
+WORK_DIR=${data}/${mapped_reads_pool}/mpileup/HAFpipe
+cd $WORK_DIR
+
+perl j3_merge_res.pl
 
 echo ending at
 date

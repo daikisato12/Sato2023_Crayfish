@@ -1,9 +1,9 @@
 use warnings;
 use strict;
 
-my $infile = '/home/daikisato177/Data/crayfish/Ref_Xu2021/v2/blastp/GCF_020424385.1_ASM2042438v2_translated_cds_longest_dros.blastp';
-my $outfile = '/home/daikisato177/Data/crayfish/Ref_Xu2021/v2/blastp/GCF_020424385.1_ASM2042438v2_translated_cds_longest_dros.best_hits_gn.txt';
-my $drosfile = '/home/daikisato177/Data/crayfish/Ref_Drosophila/Drosophila_melanogaster.BDGP6.32.pep.all.fa';
+my $infile = '/data/analyzed_data/blastp/GCF_020424385.1_ASM2042438v2_translated_cds_longest_dros.blastp';
+my $outfile = '/data/analyzed_data/blastp/GCF_020424385.1_ASM2042438v2_translated_cds_longest_dros.best_hits_gn.txt';
+my $drosfile = '${data}/${ref_drosophila}/Drosophila_melanogaster.BDGP6.32.pep.all.fa';
 
 my %drosid;
 open(IN, $drosfile);

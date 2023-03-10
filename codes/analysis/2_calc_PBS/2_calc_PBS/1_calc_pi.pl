@@ -29,8 +29,8 @@ my @arr0 = (0, 0, 0, 0, 0, 0, 0);
 my @arr1 = (1, 1, 1, 1, 1, 1, 1);
 my @index = (2, 4, 6, 7);
 my %pop;
-open(OUT, ">$ARGV[1]"); #/home/daikisato177/Projects/Crayfish/Data_2022/Mapped_reads/mpileup/HAFpipe/merge_result_pi.tsv 
-open(IN, "$ARGV[0]"); #/home/daikisato177/Projects/Crayfish/Data_2022/Mapped_reads/mpileup/HAFpipe/merge_result.tsv
+open(OUT, ">$ARGV[1]"); #${data}/${mapped_reads_pool}/mpileup/HAFpipe/merge_result_pi.tsv
+open(IN, "$ARGV[0]"); #${data}/${mapped_reads_pool}/mpileup/HAFpipe/merge_result.tsv
 while(<IN>){
     chomp;
     my @li = split(/\t/, $_);
