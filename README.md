@@ -2,7 +2,7 @@
 IN this repository you find codes for analysis of molecular evolutionary, population genomic, and transcriptomic data generated in Sato et al. (2023) Genomic adaptive potential to cold environments in the invasive red swamp crayfish.
 
 # Codes and data
-All the scripts used to analyze data and make tables & figures are stored in `/codes/` directory. Codes used for CAFE analysis are available [here](https://github.com/ymat2/crayfish_cafe_analysis). Raw data are stored in `/data/raw_data/` directory in the instructions below. Supplementary data described in the paper are available via [FigShare](https://figshare.com/s/22f447f7569e78fd7012), which includes Supplementary Data 1-5 and allele frequency data of 7 pools.
+All the scripts used to analyze data and make tables & figures are stored in `/codes/` directory. Codes used for CAFE analysis are available [here](https://github.com/ymat2/crayfish_cafe_analysis). Raw data are stored in `/data/raw_data/` directory as instructed below. Supplementary data described in the paper are available via [FigShare](https://figshare.com/s/22f447f7569e78fd7012), which includes Supplementary Data 1-5 and allele frequency data of 7 pools.
 
 ## Deposited raw data
 `All_dAF_0.5over` : All the SNP coordinates with dAF above 0.5.
