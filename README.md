@@ -1,4 +1,3 @@
-# Codes and data used for Sato et al. (2023) Genomic adaptive potential to cold environments in the invasive red swamp crayfish.
 # Sato2023_Crayfish
 IN this repository you find codes for analysis of molecular evolutionary, population genomic, and transcriptomic data generated in Sato et al. (2023) Genomic adaptive potential to cold environments in the invasive red swamp crayfish.
 
