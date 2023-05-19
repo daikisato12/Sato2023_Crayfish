@@ -6,7 +6,7 @@ All the scripts used to analyze data and make tables & figures are stored in `/c
 
 The structure of subdirectories in `${data}` described in codes are expected as below:
 ```zsh
-data
+${data}
 ├── blastp
 ├── poolseq
 │   ├── fastq
