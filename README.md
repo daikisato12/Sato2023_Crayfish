@@ -4,6 +4,35 @@ IN this repository you find codes for analysis of molecular evolutionary, popula
 # Codes and data
 All the scripts used to analyze data and make tables & figures are stored in `/codes/` directory. Codes used for CAFE analysis are available [here](https://github.com/ymat2/crayfish_cafe_analysis). Raw data are stored in `/data/raw_data/` directory as instructed below. Supplementary data described in the paper are available via [figshare](https://figshare.com/s/22f447f7569e78fd7012), which includes Supplementary Data 1-5 and allele frequency data of 7 pools.
 
+The structure of the `data` directory are as below:
+data
+├── blastp
+├── poolseq
+│   ├── fastq
+│   │   ├── post_fastp
+│   │   │   └── post_fastqc
+│   │   ├── rawdata
+│   │   ├── subsample
+│   │   └── tmp_reseq
+│   └── mapped_reads
+│       └── mpileup
+│           ├── fst
+│           ├── hafpipe
+│           │   ├── fst
+│           │   └── pbs
+│           ├── phylip
+│           └── pi
+├── ref
+└── reseq
+    ├── fastq
+    │   ├── post_fastp
+    │   │   └── post_fastqc
+    │   └── rawdata
+    └── mapped_reads
+        └── psmc
+            ├── bootstrap
+            └── bs_results
+
 ## Deposited raw data
 `All_dAF_0.5over` : All the SNP coordinates with dAF above 0.5.
 
