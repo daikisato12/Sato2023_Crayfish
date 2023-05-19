@@ -1,0 +1,1 @@
+qsub -pe def_slot 10 j1_fasterq_dump.sh
