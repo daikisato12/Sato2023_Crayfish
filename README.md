@@ -24,15 +24,21 @@ ${data}
 │           ├── phylip
 │           └── pi
 ├── ref
-└── reseq
+├── reseq
+│   ├── fastq
+│   │   ├── post_fastp
+│   │   │   └── post_fastqc
+│   │   └── rawdata
+│   └── mapped_reads
+│       └── psmc
+│           ├── bootstrap
+│           └── bs_results
+└── rnaseq
+    ├── count
     ├── fastq
     │   ├── post_fastp
-    │   │   └── post_fastqc
     │   └── rawdata
     └── mapped_reads
-        └── psmc
-            ├── bootstrap
-            └── bs_results
 ```
 
 ## Deposited raw data
