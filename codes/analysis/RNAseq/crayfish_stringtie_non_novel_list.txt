@@ -1,0 +1,15 @@
+SEN0_1 ${data}/rnaseq/mapped_reads/crayfish1_stringtie_non_novel.gtf
+SEN0_2 ${data}/rnaseq/mapped_reads/crayfish2_stringtie_non_novel.gtf
+SEN0_3 ${data}/rnaseq/mapped_reads/crayfish3_stringtie_non_novel.gtf
+SEN7_1 ${data}/rnaseq/mapped_reads/crayfish4_stringtie_non_novel.gtf
+SEN7_2 ${data}/rnaseq/mapped_reads/crayfish5_stringtie_non_novel.gtf
+SEN7_3 ${data}/rnaseq/mapped_reads/crayfish6_stringtie_non_novel.gtf
+TON0_1 ${data}/rnaseq/mapped_reads/crayfish7_stringtie_non_novel.gtf
+TON0_2 ${data}/rnaseq/mapped_reads/crayfish8_stringtie_non_novel.gtf
+TON0_3 ${data}/rnaseq/mapped_reads/crayfish9_stringtie_non_novel.gtf
+TON7_1 ${data}/rnaseq/mapped_reads/crayfish10_stringtie_non_novel.gtf
+TON7_2 ${data}/rnaseq/mapped_reads/crayfish11_stringtie_non_novel.gtf
+TON7_3 ${data}/rnaseq/mapped_reads/crayfish12_stringtie_non_novel.gtf
+TON30_1 ${data}/rnaseq/mapped_reads/crayfish13_stringtie_non_novel.gtf
+TON30_2 ${data}/rnaseq/mapped_reads/crayfish14_stringtie_non_novel.gtf
+TON30_3 ${data}/rnaseq/mapped_reads/crayfish15_stringtie_non_novel.gtf
