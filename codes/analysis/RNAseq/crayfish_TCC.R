@@ -1,6 +1,6 @@
 library(tidyverse)
 library(TCC)
-setqwd("${data}/mapped_reads/")
+setqwd("${data}/count/")
 
 name="sen0_sen7"
 #name="sen0_ton30"
