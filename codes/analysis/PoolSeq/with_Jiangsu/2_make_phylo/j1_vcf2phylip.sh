@@ -12,7 +12,7 @@ WORKDIR=${data}/mapped_reads/mpileup/phylip
 cd $WORKDIR
 
 POOLNAME="pooled_8pops"
-python /codes/software/vcf2phylip/vcf2phylip.py --input ../${POOLNAME}.vcf
+python /codes/software/vcf2phylip/vcf2phylip.py --input ../${POOLNAME}.vcf.gz
 
 echo ending at
 date

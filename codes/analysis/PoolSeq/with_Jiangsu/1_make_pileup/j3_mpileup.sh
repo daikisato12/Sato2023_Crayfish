@@ -18,8 +18,7 @@ REF=${data}/ref/GCA_020424385.2_ASM2042438v2_genomic_index_changed.fa
 # make pileup
 sambamba mpileup -t 10 -o ./mpileup/${POOLNAME}.pileup ${FILELIST} --samtools -C50 -q20 -Q20 -f ${REF}
 # make vcf based on pileup file
-sambamba mpileup -t 10 ${FILELIST} --samtools -C50 -q20 -Q20 -f ${REF} \
- | bcftools call -vmO z -o ./mpileup/${POOLNAME}.vcf.gz
+sambamba mpileup ${FILELIST} -o ./mpileup/${POOLNAME}.vcf.gz --samtools -C50 -q20 -Q20 -f ${REF} --bcftools call -vmO z
 
 perl /codes/software/popoolation2_1201/indel_filtering/identify-indel-regions.pl --input ./mpileup/${POOLNAME}.pileup --indel-window 5 --min-count 6  --output ./mpileup/${POOLNAME}.indels.gtf
 perl /codes/software/popoolation2_1201/indel_filtering/filter-sync-by-gtf.pl --gtf ./mpileup/${POOLNAME}.indels.gtf --input ./mpileup/${POOLNAME}.pileup --output ./mpileup/${POOLNAME}.indelfiltered.pileup

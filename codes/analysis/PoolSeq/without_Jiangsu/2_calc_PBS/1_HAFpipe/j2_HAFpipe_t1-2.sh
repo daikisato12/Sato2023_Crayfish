@@ -13,7 +13,7 @@ POOLNAME="pooled_7pops"
 
 WORKDIR=${data}/mapped_reads/mpileup/hafpipe
 cd $WORKDIR
-sh /codes/software/HAFpipe-line/HAFpipe_wrapper.sh -t 1 -v ../${POOLNAME}.vcf -c ${CHR} -l HAFpipe_${CHR}.snpTable.log -s HAFpipe_${CHR}.snpTable -o ./
+sh /codes/software/HAFpipe-line/HAFpipe_wrapper.sh -t 1 -v ../${POOLNAME}.vcf.gz -c ${CHR} -l HAFpipe_${CHR}.snpTable.log -s HAFpipe_${CHR}.snpTable -o ./
 sed -i -e '1d' HAFpipe_${CHR}.snpTable
 mv HAFpipe_${CHR}.snpTable ${CHR}.tmp2.txt
 echo "${CHR},Ref,Aomori,atchafalaya2,kamakura2,NewOrleans,okinawa2,tonden2,triunfo2" > ${CHR}.tmp1.txt
