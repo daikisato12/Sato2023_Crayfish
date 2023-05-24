@@ -1,0 +1,2 @@
+ID	Description	GeneRatio	BgRatio	pvalue	p.adjust	qvalue	Count	geneID	genename
+dme04214	Apoptosis - fly - Drosophila melanogaster (fruit fly)	7/73	39/2128	0.000267062457160232	0.0178931846297356	0.0160237474296139	7	FBgn0001297, FBgn0000567, FBgn0265464, FBgn0000546, FBgn0039044, FBgn0026404, FBgn0040491	kay, Eip74EF, Traf6, EcR, p53, Dronc, Buffy

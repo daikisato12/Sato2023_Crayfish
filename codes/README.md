@@ -21,6 +21,43 @@ IN this repository you find codes for analyzing data and visualizing the results
 - [Trinity](https://github.com/trinityrnaseq/trinityrnaseq/wiki)
 - [TCC](https://bioconductor.org/packages/release/bioc/html/TCC.html)
 
+The structure of subdirectories in `${data}` described in codes are expected as below:
+```zsh
+${data}
+├── blastp
+├── poolseq
+│   ├── fastq
+│   │   ├── post_fastp
+│   │   │   └── post_fastqc
+│   │   ├── rawdata
+│   │   ├── subsample
+│   │   └── tmp_reseq
+│   └── mapped_reads
+│       └── mpileup
+│           ├── fst
+│           ├── hafpipe
+│           │   ├── fst
+│           │   └── pbs
+│           ├── phylip
+│           └── pi
+├── ref
+├── reseq
+│   ├── fastq
+│   │   ├── post_fastp
+│   │   │   └── post_fastqc
+│   │   └── rawdata
+│   └── mapped_reads
+│       └── psmc
+│           ├── bootstrap
+│           └── bs_results
+└── rnaseq
+    ├── count
+    ├── fastq
+    │   ├── post_fastp
+    │   └── rawdata
+    └── mapped_reads
+```
+
 ## analysis
 Codes used for population genomic and transcriptomic analysis are stored. The `prepDE.py` used for making count matrix is attached to the `StringTie` software and available [here](https://github.com/gpertea/stringtie/blob/master/prepDE.py).
 

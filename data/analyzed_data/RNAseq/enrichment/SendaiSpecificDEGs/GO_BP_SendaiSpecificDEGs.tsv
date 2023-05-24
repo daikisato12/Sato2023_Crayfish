@@ -1,0 +1,16 @@
+ID	Description	GeneRatio	BgRatio	pvalue	p.adjust	qvalue	geneID	Count	Type
+GO:0042335	cuticle development	15/181	110/5525	2.31929454585326e-06	0.003414001571496	0.00315424058236043	pygo, Cpr73D, ck, Cpr47Ee, dsx-c73A, Cpr50Cb, dpy, Cpr49Aa, Cht5, boi, Cpr65Eb, Cpr67Fb, m, Cpr67B, Ser	15	BP
+GO:0040003	chitin-based cuticle development	12/181	82/5525	1.18542555051273e-05	0.0087247320517737	0.00806089374348657	pygo, Cpr73D, ck, Cpr47Ee, dsx-c73A, Cpr50Cb, dpy, Cpr49Aa, Cht5, Cpr65Eb, Cpr67Fb, Cpr67B	12	BP
+GO:0003008	system process	23/181	284/5525	4.4134282549485e-05	0.0216552213042806	0.0200075414224332	Mhc, Col4a1, Lcch3, nAChRalpha7, RyR, Calx, ck, Tmhs, tn, meng, for, CenG1A, Stacl, DCX-EMAP, CG4928, dpr7, Nha1, Ank2, qvr, Scgdelta, Fitm, stj, CG6972	23	BP
+GO:0007389	pattern specification process	26/181	361/5525	0.00010104476756955	0.0322951321590938	0.029837893842641	S, pygo, Mgat1, tara, dpn, rt, slp1, ck, dsh, jvl, Pc, CadN, CG5890, Myc, emc, sgl, amos, brat, wkd, cbt, stan, boi, m, bowl, nab, Ser	26	BP
+GO:2001257	regulation of cation channel activity	5/181	16/5525	0.000116244891396281	0.0322951321590938	0.029837893842641	Stacl, Hk, Rgk3, qvr, stj	5	BP
+GO:0006811	monoatomic ion transport	17/181	189/5525	0.000131637766952828	0.0322951321590938	0.029837893842641	Lcch3, nAChRalpha7, RyR, Calx, KaiR1D, Irk1, MFS10, OtopLc, sand, Stacl, Hk, CG4928, Nha1, Rgk3, CG15270, qvr, stj	17	BP
+GO:0034220	monoatomic ion transmembrane transport	14/181	139/5525	0.000160948854132233	0.0338452447546638	0.0312700630885481	Lcch3, nAChRalpha7, RyR, Calx, KaiR1D, Irk1, OtopLc, sand, Stacl, Hk, Rgk3, CG15270, qvr, stj	14	BP
+GO:0003012	muscle system process	6/181	27/5525	0.000189685097977428	0.0349020580278468	0.0322464666561628	Mhc, RyR, tn, Stacl, CG4928, CG6972	6	BP
+GO:0006812	monoatomic cation transport	15/181	163/5525	0.000257818495178173	0.0350360701425569	0.0323702821969276	nAChRalpha7, RyR, Calx, KaiR1D, Irk1, OtopLc, sand, Stacl, Hk, CG4928, Nha1, Rgk3, CG15270, qvr, stj	15	BP
+GO:0043269	regulation of monoatomic ion transport	7/181	40/5525	0.000268951736334279	0.0350360701425569	0.0323702821969276	Irk1, Stacl, Hk, CG4928, Rgk3, qvr, stj	7	BP
+GO:0003002	regionalization	24/181	341/5525	0.000271980175685204	0.0350360701425569	0.0323702821969276	S, pygo, Mgat1, tara, dpn, rt, slp1, ck, dsh, jvl, Pc, CG5890, emc, sgl, amos, brat, wkd, cbt, stan, boi, m, bowl, nab, Ser	24	BP
+GO:0006936	muscle contraction	5/181	19/5525	0.000285620137031714	0.0350360701425569	0.0323702821969276	Mhc, RyR, tn, Stacl, CG4928	5	BP
+GO:0034762	regulation of transmembrane transport	6/181	31/5525	0.000423065650049347	0.0444823312051885	0.0410978060047937	Irk1, Stacl, Hk, Rgk3, qvr, stj	6	BP
+GO:0034765	regulation of monoatomic ion transmembrane transport	6/181	31/5525	0.000423065650049347	0.0444823312051885	0.0410978060047937	Irk1, Stacl, Hk, Rgk3, qvr, stj	6	BP
+GO:0070588	calcium ion transmembrane transport	6/181	32/5525	0.000506709620783571	0.0497251041195611	0.0459416722843771	RyR, Calx, KaiR1D, Stacl, Rgk3, stj	6	BP

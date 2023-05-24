@@ -1,8 +1,8 @@
 use warnings;
 use strict;
 
-my $infile = '/data/analyzed_data/blastp/GCF_020424385.1_ASM2042438v2_translated_cds_longest_dros.blastp';
-my $outfile = '/data/analyzed_data/blastp/GCF_020424385.1_ASM2042438v2_translated_cds_longest_dros.best_hits_gn.txt';
+my $infile = '/data/analyzed_data/BlastP/GCF_020424385.1_ASM2042438v2_translated_cds_longest_dros.blastp';
+my $outfile = '/data/analyzed_data/BlastP/GCF_020424385.1_ASM2042438v2_translated_cds_longest_dros.best_hits_gn.txt';
 my $drosfile = '${data}/ref/Drosophila_melanogaster.BDGP6.32.pep.all.fa';
 
 my %drosid;

@@ -1,0 +1,2 @@
+ID	Description	GeneRatio	BgRatio	pvalue	p.adjust	qvalue	Count	geneID	genename
+dme00514	Other types of O-glycan biosynthesis - Drosophila melanogaster (fruit fly)	4/45	21/2128	0.000803788957971388	0.0313477693608841	0.028767183758976	4	FBgn0003292, FBgn0086368, FBgn0034959, FBgn0032078	rt, tw, Xxylt, C1GalTA
