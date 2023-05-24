@@ -182,7 +182,7 @@ combinations_list <- c("Aomori-Atchafalaya", "Aomori-Kamakura", "Aomori-New Orle
                        "Tonden-Triunfo")
 
 
-df_fst <- read.table("../data/Fst/pooled_7pops_indelfiltered_mincov4_maxcov16_5kbp.fst", header = F) %>%
+df_fst <- read.table("../../data/analyzed_data/Fst/pooled_7pops_indelfiltered_mincov4_maxcov16_5kbp.fst", header = F) %>%
   `colnames<-`(c("Chr", "Coord", "N_SNPs", "Fraction", "Coverage", combinations_list)) %>%
   pivot_longer(cols = contains("-"), names_to = "Pop1-Pop2", values_to = "Fst") %>% 
   mutate(Fst = str_sub(Fst, 5) %>% as.numeric()) %>%
