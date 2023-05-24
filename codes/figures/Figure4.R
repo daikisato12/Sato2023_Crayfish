@@ -1,416 +1,279 @@
 #### load libraries ####
 library(tidyverse)
-# setwd("")
+# install.packages("ggrepel")
+library(ggrepel)
+library(ape)
+# install.packages("phytools")
+library(phytools)
+# install.packages("geiger")
+library(geiger)
+library(nlme)
 
-#### Figure 4a Manhattan plot ####
-df_pbs <- read.table("/Users/dsato/Dropbox/研究室/投稿論文/2020/ザリガニ論文/manuscript_tmp/data/HAF/PBS/rawdata/HAF_PBS_5kbp_step1kbp.tsv", header = TRUE) %>%
-  pivot_longer(cols = !c(Chr, Coord, NSNPs), names_sep = "\\.", names_to = c("TargetPop", "comb1", "comb2", "comb3"), values_to = "PBS") %>%
-  unite(col = Combination, starts_with("comb"), sep = "-") %>%
-  group_by(Combination, TargetPop) %>%
-  mutate(threshold1 = quantile(na.omit(PBS),0.99),
-         threshold0.1 = quantile(na.omit(PBS),0.999))
+# install.packages("BiocManager")
+# library(BiocManager)
+# BiocManager::install("clusterProfiler")
+# BiocManager::install("pathview")
+# install.packages("wordcloud")
+library(clusterProfiler)
+library(wordcloud)
+# install.packages("ggupset")
+library(ggupset)
+library(ggnewscale)
+library(enrichplot)
 
-unique(df_pbs$Chr)
-li <- seq(1, length(unique(df_pbs$Chr)))
-names(li) <- unique(df_pbs$Chr)
+organism = "org.Dm.eg.db"
+BiocManager::install(organism, character.only = TRUE)
+library(organism, character.only = TRUE)
 
-df_pbs2 <- df_pbs %>%
-  mutate(CHR_tmp = li[Chr]) %>%
-  dplyr::rename(BP = Coord)
+library(tidytext)
 
-don_PBS <- df_pbs2 %>%
-  
-  # filter(df_PBS != "na") %>%
-  
-  # Compute CHR_tmpomosome size
-  group_by(CHR_tmp) %>% 
-  summarise(CHR_tmp_len = max(BP)) %>% 
-  
-  # Calculate cumulative position of each CHR_tmpomosome
-  mutate(tot = cumsum(as.numeric(CHR_tmp_len))-CHR_tmp_len) %>%
-  dplyr::select(-CHR_tmp_len) %>%
-  
-  # Add this info to the initial dataset
-  left_join(df_pbs2, ., by=c("CHR_tmp"="CHR_tmp")) %>%
-  
-  # Add a cumulative position of each SNP
-  arrange(CHR_tmp, BP) %>%
-  mutate(BPcum=BP+tot) %>%
-  mutate(sig_color = case_when(as.numeric(CHR_tmp) %% 2 == 1 ~ "black",
-                               as.numeric(CHR_tmp) %% 2 == 0 ~ "grey"))
 
-axisdf <- don_PBS %>% 
-  group_by(CHR_tmp) %>% 
-  summarize(center=( max(BPcum) + min(BPcum) ) / 2 )
+#### load dataset ####
+df_prop <- read.delim("../../data/analyzed_data/PD/results_20230519.txt") %>%
+  mutate(Group = if_else(Group == 1, "Non-invasive", "Invasive") %>%
+           factor(., levels = c("Invasive", "Non-invasive")),
+         Decapods = if_else(Decapods == 1, "Decapods", "Others") %>%
+           factor(., levels = c("Decapods", "Others")),
+         spe_abb = paste0(substr(Species, 1, 1), ". ", str_split(Species, " ") %>% map_chr(2))) %>%
+  filter(!Species %in% c("Chinoecetes opilio", "Procambarus virginalis"))
+colnames(df_prop) <- c("Invasive", "Decapods", "species", "phyname", "PD", "propsize", "spe_abb")
 
-# test <- don_PBS %>% filter(Chr == "LG03_CM035475.1", BP > 24500000, BP < 25500000)
-
-g4a <- ggplot(don_PBS %>%
-                dplyr::rename(POP = Combination) %>%
-                filter(TargetPop == "Sapporo"), 
-              aes(x=BPcum, y=as.numeric(PBS), color = sig_color)) + # color= as.factor(CHR_tmp) # alpha = as.factor(CHR_tmp %% 2), color = POP)) +
-  
-  # annotate("rect", xmin = 73932000, xmax = 74932000, ymin = -Inf, ymax = Inf,  fill = "red", alpha=.2) +
-  # Show all points
-  geom_point(size = 1.3, alpha = 0.4, shape = 16) +
-  # scale_alpha_manual(values = c(0.5, 1)) +
-  # scale_color_viridis_d() +
-  scale_color_manual(values = c("black" = "#d9d9b4",
-                                "grey" = "#fff1cf")) +
-  # scale_color_manual(values = rep(c("grey", "black"), max(don_PBS$CHR_tmp))) +
-  #  scale_size_manual(values = c(1.3, 2.4)) +
-  #  geom_point( aes(fill=as.factor(is_col)), alpha=0.8, size=1.3) +
-  #  scale_fill_viridis_d() +
-  # scale_shape_manual(values = c(16, 17, 15)) +
-  #  scale_color_manual(values = rep(c("grey", "#cd5c5c"), 22 )) +
-  # geom_hline(aes(yintercept = threshold1), linewidth = 1, col = "black", linetype = "dotted") +
-  geom_hline(aes(yintercept = threshold0.1), linewidth = 1, col = "darkred", linetype = "dotted") +
-  # geom_hline(yintercept = quantile(na.omit(don_PBS$PBS),0.99), linewidth = 1, col = "black", linetype = "dotted") +
-  # geom_hline(yintercept = quantile(na.omit(don_PBS$PBS),0.999), linewidth = 1, col = "darkred", linetype = "dotted") +
-  
-  # custom X axis:
-  scale_x_continuous(label = axisdf$CHR_tmp, breaks = axisdf$center, guide = guide_axis(n.dodge = 2)) +
-  #  scale_y_continuous(breaks=seq(0,1,by=0.2)) +     # remove space between plot area and x axis
-  
-  #  geom_hline(yintercept=-log10(alpha), linetype="dotted", color="#cd5c5c", size=1) +
-  xlab("Linkage Group") +
-  ylab("PBS (Sapporo)") +
-  coord_cartesian(ylim = c(0,NA)) +
-  # Custom the theme:
-  facet_wrap(~ POP, nrow = 3) +
+#### Figure 4a PD against propagule size ####
+g4_1 <- ggplot(df_prop, aes(x = log10(propsize), y = PD)) +
+  geom_smooth(method = 'lm', formula= y ~ x, color = "grey") +
+  geom_point(aes(shape = Decapods, color = Invasive), size = 5) +
+  ggrepel::geom_text_repel(aes(label = spe_abb),  fontface = "italic") +
+  scale_color_manual(values = c("darkred", "grey")) +
+  scale_shape_manual(values = c(17, 16)) +
+  xlab(expression(Log[10]("Propagule size"))) +
+  ylab(expression(italic(P)[D])) +
   theme_bw() +
-  theme( 
-    # axis.text.x = element_blank(),
-    legend.position="none",
-    panel.border = element_blank(),
-    panel.grid.major.x = element_blank(),
-    panel.grid.minor.x = element_blank(),
-    strip.background = element_blank(),
-  ) 
-g4a
-ggsave("/Users/dsato/Dropbox/研究室/投稿論文/2020/ザリガニ論文/ザリガニ論文_Sato_Makino/figures/tmp/Figure4a_Manhattan_plot_5kbp_step1kbp.png", g4a, w=6, h=3)
+  theme(legend.title = element_blank())
 
-don_PBS_5kbp_1kbp_0.1 <- don_PBS %>%
-  filter(PBS > threshold0.1, TargetPop == "Sapporo") %>%
-  dplyr::select(!c(CHR_tmp, tot, BPcum, sig_color)) %>%
-  pivot_wider(id_cols = c(Chr, BP, NSNPs), names_from = Combination, values_from = PBS) %>%
-  write.table("/Users/dsato/Dropbox/研究室/投稿論文/2020/ザリガニ論文/manuscript_tmp/data/HAF/PBS/analyzed_data/HAF_PBS_5kbp_step1kbp_top0.1.tsv",row.names = F, quote = F, sep = "\t")
+g4_1
 
-comb <- c("Kamakura-Okinawa-Sapporo",
-          "Aomori-Kamakura-Sapporo",
-          "Aomori-Okinawa-Sapporo")
+#### Figure 4b residuals ####
+##### all invertebrates #####
+# fit model
+model <- lm(PD ~ log10(propsize), data=df_prop)
+# view model summary
+# summary(model)
 
-don_PBS_5kbp_1kbp_0.1_2comb <- don_PBS %>%
-  filter(PBS > threshold0.1, TargetPop == "Sapporo") %>%
-  dplyr::select(!c(CHR_tmp, tot, BPcum, sig_color)) %>%
-  pivot_wider(id_cols = c(Chr, BP, NSNPs), names_from = Combination, values_from = PBS) %>%
-  mutate(numTop = rowSums(!is.na(.[comb]))) %>%
-  filter(numTop > 1) %>%
-  dplyr::select(!numTop) %>%
-  write.table("/Users/dsato/Dropbox/研究室/投稿論文/2020/ザリガニ論文/manuscript_tmp/data/HAF/PBS/analyzed_data/HAF_PBS_5kbp_step1kbp-top0.1_2combsharedloci.tsv",row.names = F, quote = F, sep = "\t")
+df_prop2 <- df_prop %>%
+  bind_cols(data.frame(res_std = rstandard(model)))
 
-#### Figure 4b Number of genes ####
-list_degs_DEGs <- read.delim("/Users/dsato/Dropbox/研究室/投稿論文/2020/ザリガニ論文/ザリガニ論文_Sato_Makino/figures/tmp/TableS2_withinDEGs.tsv", header = TRUE, sep = "\t") %>%
-  filter(SendaiDay0_SendaiDay7_qval < 0.05 |
-           SapporoDay0_SapporoDay7_qval < 0.05 | 
-           SapporoDay0_SapporoDay31_qval  < 0.05 |
-           SapporoDay7_SapporoDay31_qval  < 0.05) %>%
+g4_2_all <- ggplot(df_prop2, aes(x = res_std, y = reorder(species, res_std))) +
+  geom_bar(stat = "identity", aes(fill = Invasive)) +
+  # geom_text_repel(aes(label = species), fontface = "italic") + #nudge_x = 0.1, 
+  xlab(expression(paste("Residuals of ", {italic(P)[D]}, " against propagule size", sep = " "))) +
+  scale_fill_manual(values = c("darkred", "grey")) +
+  theme_classic() +
+  theme(axis.line.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.text.y = element_text(face = "italic"),#element_blank(),
+        axis.title.y = element_blank(),
+        legend.title = element_blank())
+
+
+###### PGLS analysis ######
+# Phylogenetic tree
+allTree <- ape::read.tree("../../data/analyzed_data/PD/phylogenetic_tree/withoutPvirCopi/iqtree_all.nwk")
+phy <- multi2di(allTree) #make rooted tree
+plot(phy)
+# # Calculate PICs
+df_all_pgls <- df_prop %>%
+  tibble::column_to_rownames(var = "phyname")
+
+pglsModel <- gls(PD ~ propsize, correlation = corBrownian(phy = allTree),
+                 data = df_all_pgls, method = "ML")
+summary(pglsModel)
+plot(df_all_pgls$PD ~ df_all_pgls$propsize)
+abline(a = coef(pglsModel)[1], b = coef(pglsModel)[2])
+
+
+g4 <- ggpubr::ggarrange(g4_1, g4_2_all, ncol = 2, align = "h")
+ggplot2::ggsave("../../figures/tmp/Figure4ab.pdf", g4, w = 14, h = 6)
+
+
+#### Figure 4c number of rapidly evolving genes ####
+df_cafe_p <- read.delim("../../data/analyzed_data/CAFE/results_cafe5_noPvirCopi/Gamma_branch_probabilities.tab", header = TRUE) %>%
+  dplyr::rename(GeneID = X.FamilyID) %>%
+  dplyr::select(!c(X.14., X)) %>%
+  pivot_longer(cols = !GeneID, names_to = "node", values_to = "pval")
+df_cafe_change <- read.delim("../../data/analyzed_data/CAFE/results_cafe5_noPvirCopi/Gamma_change.tab", header = TRUE) %>%
+  dplyr::rename(GeneID = FamilyID) %>%
+  dplyr::select(!c(X.14.)) %>%
+  pivot_longer(cols = !GeneID, names_to = "node", values_to = "change")
+df_cafe <- inner_join(df_cafe_p %>%
+                        filter(pval < 0.05), 
+                      df_cafe_change) %>%
+  mutate(sign = ifelse(change < 0, "-", ifelse(change > 0, "+", 0))) %>%
+  dplyr::select(!change) %>%
+  group_by(node, sign) %>%
+  summarize(n = n())
+
+
+df_cafe_Pcla_exp <- inner_join(df_cafe_p %>%
+                                 filter(pval < 0.05), 
+                               df_cafe_change) %>%
+  mutate(sign = ifelse(change < 0, "-", ifelse(change > 0, "+", 0))) %>%
+  filter(node == "Pcla.5.", sign == "+")
+
+#### Figure 4d enrichment analysis ####
+list_cafe_all_genes <- read.delim("../../data/analyzed_data/CAFE/results_cafe5_noPvirCopi/Gamma_change.tab", header = TRUE) %>%
+  dplyr::rename(GeneID = FamilyID) %>%
+  dplyr::select(!c(X.14.)) %>%
+  pull(GeneID)
+list_cafe_Pcla_expanded_genes <- df_cafe_Pcla_exp %>%
   pull(GeneID)
 
-list_degs_sendai <- read.delim("/Users/dsato/Dropbox/研究室/投稿論文/2020/ザリガニ論文/ザリガニ論文_Sato_Makino/figures/tmp/TableS2_withinDEGs.tsv", header = TRUE, sep = "\t") %>%
-  filter(SendaiDay0_SendaiDay7_qval < 0.05, 
-         is.na(SapporoDay0_SapporoDay7_qval), is.na(SapporoDay0_SapporoDay31_qval)) %>%
-  pull(GeneID)
+dir.create("../../data/analyzed_data/CAFE/results_cafe5_noPvirCopi/enrichment/clusterProfiler_Pcla_exp", recursive = T)
 
-list_degs_sapporo <- read.delim("/Users/dsato/Dropbox/研究室/投稿論文/2020/ザリガニ論文/ザリガニ論文_Sato_Makino/figures/tmp/TableS2_withinDEGs.tsv", header = TRUE, sep = "\t") %>%
-  filter(is.na(SendaiDay0_SendaiDay7_qval), 
-         SapporoDay0_SapporoDay7_qval < 0.05 | SapporoDay0_SapporoDay31_qval  < 0.05) %>%
-  pull(GeneID)
+##### BP #####
+go_enrich_BP_Pcla_exp <- enrichGO(gene = list_cafe_Pcla_expanded_genes,
+                                  universe = list_cafe_all_genes,
+                                  OrgDb = organism, 
+                                  keyType = 'FLYBASE',
+                                  readable = T,
+                                  ont = "BP",
+                                  pvalueCutoff = 0.05, 
+                                  qvalueCutoff = 0.10)
 
-list_degs_shared <- read.delim("/Users/dsato/Dropbox/研究室/投稿論文/2020/ザリガニ論文/ザリガニ論文_Sato_Makino/figures/tmp/TableS2_withinDEGs.tsv", header = TRUE, sep = "\t") %>%
-  filter(SendaiDay0_SendaiDay7_qval < 0.05, 
-         is.na(SapporoDay0_SapporoDay7_qval),
-         SapporoDay0_SapporoDay31_qval < 0.05) %>%
-pull(GeneID)
-
-list_selection <- read.table("/Users/dsato/Dropbox/研究室/投稿論文/2020/ザリガニ論文/ザリガニ論文_Sato_Makino/data/PBS/HAF_PBS_5kbp_step1kbp-top0.1_2combsharedloci_genelist.txt") %>%
-  pull(V1)
-
-intersect(list_degs_sendai, list_selection)
-intersect(list_degs_sapporo, list_selection)
-intersect(list_degs_shared, list_selection)
-intersect(list_degs_DEGs, list_selection)
-
-#### Figure 4c Heatmap of allele frequencies ####
-label_plus <- function(x){
-  ifelse(sign(x) == -1, abs(x), x)
+df_go_enrich_BP_Pcla_exp <- go_enrich_BP_Pcla_exp@result %>%
+  filter(p.adjust < 0.05) %>%
+  mutate(geneID = str_replace_all(geneID, "/", ", "))
+if(nrow(df_go_enrich_BP_Pcla_exp) > 0){
+  write.table(df_go_enrich_BP_Pcla_exp, "../../data/analyzed_data/CAFE/results_cafe5_noPvirCopi/enrichment/clusterProfiler_Pcla_exp/GO_BP_Pcla_exp.tsv", quote = FALSE, sep = "\t", row.names = FALSE)
 }
 
-df_gtf <- read_tsv("/Users/dsato/Dropbox/研究室/投稿論文/2020/ザリガニ論文/Data/Ref/Xu2021/v2/GCF_020424385.1_ASM2042438v2_genomic.gtf", comment = "#", col_names = F) %>%
-  separate(X9, sep = ";", into = c("geneID", "transcriptID", "db_xref", "experiment", "gene", "model_evidence", "product", "transcript_biotype", "exon_number")) %>%
-  dplyr::select(1:10) %>%
-  mutate(geneID = str_extract(geneID, '\"[^()]+\"') %>%
-           str_remove_all('\"'),
-         transcriptID = str_extract(transcriptID, '\"[^()]+\"') %>%
-           str_remove_all('\"'))
-genename_list <- df_gtf[!is.na(df_gtf$transcriptID),]$geneID
-names(genename_list) <- df_gtf[!is.na(df_gtf$transcriptID),]$transcriptID
+g1_BP_Pcla_exp <- upsetplot(go_enrich_BP_Pcla_exp)
+ggplot2::ggsave("../../data/analyzed_data/CAFE/results_cafe5_noPvirCopi/enrichment/clusterProfiler_Pcla_exp/UpsetPlot_BP.pdf", g1_BP_Pcla_exp, h=6, w=10)
 
-df_pbs <- read.table("../../manuscript_tmp/data/HAF/PBS/rawdata//HAF_PBS_5kbp_step1kbp.tsv", header = TRUE) %>%
-  pivot_longer(cols = !c(Chr, Coord, NSNPs), names_sep = "\\.", names_to = c("TargetPop", "Comb1", "Comb2", "Comb3"), values_to = "PBS") %>%
-  unite(col = Combination, starts_with("comb"), sep = "-")
+g2_BP_Pcla_exp <- barplot(go_enrich_BP_Pcla_exp, 
+                          drop = TRUE, 
+                          showCategory = 10, 
+                          title = "GO Biological Pathways",
+                          font.size = 8)
+ggplot2::ggsave("../../data/analyzed_data/CAFE/results_cafe5_noPvirCopi/enrichment/clusterProfiler_Pcla_exp/BarPlot_BP.pdf", g2_BP_Pcla_exp, h=3, w=5)
 
-df_g4c1 <- read.table("../../manuscript_tmp/data/HAF/merge_result.tsv", sep = "\t", header = TRUE) %>% 
-  mutate(SNPID = row_number(),
-         check0 = rowSums(.[3:9] == 0),
-         check1 = rowSums(.[3:9] == 1)) %>%
-  filter(check0 != 7 & check1 != 7) %>%
-  dplyr::rename(Atchafalaya = atchafalaya2,
-                Kamakura = kamakura2,
-                Okinawa = okinawa2,
-                Tonden = tonden2,
-                Triunfo = triunfo2) %>%
-  pivot_longer(cols = c("Aomori", "Atchafalaya", "Kamakura", "NewOrleans", "Okinawa", "Tonden", "Triunfo"), values_to = "AF") %>%
-  mutate(AF = as.numeric(AF),
-         name = case_when(name == "Tonden" ~ "Sapporo",
-                          name == "NewOrleans" ~ "New Orleans",
-                          TRUE ~ name)) %>%
-  transform(name = factor(name, levels = c("Okinawa", "Aomori", "Sapporo", "Kamakura", "Atchafalaya", "Triunfo", "New Orleans")))
+g3_BP_Pcla_exp <- dotplot(go_enrich_BP_Pcla_exp, orderBy = "x")
+ggplot2::ggsave("../../data/analyzed_data/CAFE/results_cafe5_noPvirCopi/enrichment/clusterProfiler_Pcla_exp/DotPlot_BP.pdf", g3_BP_Pcla_exp, h=4, w=6)
 
-region <- c(22000000, 27000000)
+g4_BP_Pcla_exp <- emapplot(go_enrich_BP_Pcla_exp %>% pairwise_termsim())
+ggplot2::ggsave("../../data/analyzed_data/CAFE/results_cafe5_noPvirCopi/enrichment/clusterProfiler_Pcla_exp/EncrichmentMap_BP.pdf", g4_BP_Pcla_exp, h=6, w=8)
 
-df_g4c1_t <- df_g4c1 %>%
-  filter(Chr == "LG03_CM035475.1", Pos > region[1], Pos < region[2]) %>%
-  dplyr::rename(Coord = Pos)
+g4_BP_Pcla_exp <- goplot(go_enrich_BP_Pcla_exp, showCategory = 10)
+ggplot2::ggsave("../../data/analyzed_data/CAFE/results_cafe5_noPvirCopi/enrichment/clusterProfiler_Pcla_exp/EncrichedGOGraph_BP.pdf", g4_BP_Pcla_exp, h=6, w=8)
 
-# df_g4c1 <- read.table("../codes/analysis/2_calc_AF/Spn88Ea_LOC123757200_AF.txt", sep = "\t", header = TRUE) %>% 
-#   mutate(SNPID = row_number()) %>%
-#   pivot_longer(cols = c("Aomori", "Atchafalaya", "Kamakura", "NewOrleans", "Okinawa", "Tonden", "Triunfo")) %>%
-#   separate(col = value, into = c("AF", "Allele"), sep = "\\(") %>%
-#   mutate(Allele = str_remove_all(Allele, "\\)"),
-#          AF = as.numeric(AF),
-#          name = case_when(name == "Tonden" ~ "Sapporo",
-#                           name == "NewOrleans" ~ "New Orleans",
-#                           TRUE ~ name)) %>%
-#   transform(name = factor(name, levels = c("Okinawa", "Aomori", "Sapporo", "Kamakura", "Atchafalaya", "Triunfo", "New Orleans")))
+g6_BP_Pcla_exp <- cnetplot(go_enrich_BP_Pcla_exp, categorySize="pvalue")
+ggplot2::ggsave("../../data/analyzed_data/CAFE/results_cafe5_noPvirCopi/enrichment/clusterProfiler_Pcla_exp/CategoryNet_BP.pdf", g6_BP_Pcla_exp, h=12, w=10)
 
-df_g4c1_2 <- df_g4c1_t %>% #df_g4c1 %>%
-  pivot_wider(id_cols = Coord, names_from = name, values_from = AF) %>%
-  tibble::column_to_rownames(var = "Coord") %>%
-  t()
-df_g4c1_2 <- df_g4c1_2[c("Okinawa", "Aomori", "Sapporo", "Kamakura", "Atchafalaya", "Triunfo", "New Orleans"),]
-h <- hclust(dist(df_g4c1_2))
-d <- as.dendrogram(h)
-dd <- ggdendro::dendro_data(d, type = "rectangle")
+##### CC #####
+# go_enrich_CC_Pcla_exp <- enrichGO(gene = list_cafe_Pcla_expanded_genes,
+#                                   universe = list_cafe_all_genes,
+#                                   OrgDb = organism, 
+#                                   keyType = 'FLYBASE',
+#                                   readable = T,
+#                                   ont = "CC",
+#                                   pvalueCutoff = 0.05, 
+#                                   qvalueCutoff = 0.10)
+# 
+# df_go_enrich_CC_Pcla_exp <- go_enrich_CC_Pcla_exp@result %>%
+#   filter(p.adjust < 0.05) %>%
+#   mutate(geneID = str_replace_all(geneID, "/", ", "))
+# if(nrow(df_go_enrich_CC_Pcla_exp) > 0){
+#   write.table(df_go_enrich_CC_Pcla_exp, "../../data/analyzed_data/CAFE/results_cafe5_noPvirCopi/enrichment/clusterProfiler_Pcla_exp/GO_CC_Pcla_exp.tsv", quote = FALSE, sep = "\t", row.names = FALSE)
+# }
+# g1_CC_Pcla_exp <- upsetplot(go_enrich_CC_Pcla_exp)
+# ggplot2::ggsave("../../data/analyzed_data/CAFE/results_cafe5_noPvirCopi/enrichment/clusterProfiler_Pcla_exp/UpsetPlot_CC.pdf", g1_CC_Pcla_exp, h=6, w=10)
+# 
+# g2_CC_Pcla_exp <- barplot(go_enrich_CC_Pcla_exp, 
+#                           drop = TRUE, 
+#                           showCategory = 10, 
+#                           title = "GO Cellular Components",
+#                           font.size = 8)
+# ggplot2::ggsave("../../data/analyzed_data/CAFE/results_cafe5_noPvirCopi/enrichment/clusterProfiler_Pcla_exp/BarPlot_CC.pdf", g2_CC_Pcla_exp, h=3, w=5)
+# 
+# g3_CC_Pcla_exp <- dotplot(go_enrich_CC_Pcla_exp, orderBy = "x")
+# ggplot2::ggsave("../../data/analyzed_data/CAFE/results_cafe5_noPvirCopi/enrichment/clusterProfiler_Pcla_exp/DotPlot_CC.pdf", g3_CC_Pcla_exp, h=4, w=5)
+# 
+# g4_CC_Pcla_exp <- emapplot(go_enrich_CC_Pcla_exp %>% pairwise_termsim())
+# ggplot2::ggsave("../../data/analyzed_data/CAFE/results_cafe5_noPvirCopi/enrichment/clusterProfiler_Pcla_exp/EncrichmentMap_CC.pdf", g4_CC_Pcla_exp, h=6, w=8)
+# 
+# g4_CC_Pcla_exp <- goplot(go_enrich_CC_Pcla_exp, showCategory = 10)
+# ggplot2::ggsave("../../data/analyzed_data/CAFE/results_cafe5_noPvirCopi/enrichment/clusterProfiler_Pcla_exp/EncrichedGOGraph_CC.pdf", g4_CC_Pcla_exp, h=6, w=8)
+# 
+# g6_CC_Pcla_exp <- cnetplot(go_enrich_CC_Pcla_exp, categorySize="pvalue")
+# ggplot2::ggsave("../../data/analyzed_data/CAFE/results_cafe5_noPvirCopi/enrichment/clusterProfiler_Pcla_exp/CategoryNet_CC.pdf", g6_CC_Pcla_exp, h=12, w=10)
 
-df_gtf_exon <- df_gtf %>%
-  filter(X4 > region[1], X5 < region[2], X3 == "exon") %>%
-  filter(X1 == "NC_059573.1")
-xmin <- df_gtf_exon$X4
-xmax <- df_gtf_exon$X5
-df_gtf_gene <- df_gtf %>%
-  filter(X4 > region[1], X5 < region[2], X3 == "gene") %>%
-  filter(X1 == "NC_059573.1")
+##### MF #####
+go_enrich_MF_Pcla_exp <- enrichGO(gene = list_cafe_Pcla_expanded_genes,
+                                  universe = list_cafe_all_genes,
+                                  OrgDb = organism, 
+                                  keyType = 'FLYBASE',
+                                  readable = T,
+                                  ont = "MF",
+                                  pvalueCutoff = 0.05, 
+                                  qvalueCutoff = 0.10)
 
-g4c1_dend <- ggplot(ggdendro::segment(dd)) +
-  geom_segment(aes(x = -y, y = x, xend = -yend, yend = xend)) +
-  scale_x_continuous(labels = label_plus) +
-  xlab("Height") +
-  # geom_text(data = dd$labels, aes(x = -y, y = x, label = label), hjust = 0) +
-  theme_classic() +
-  theme(axis.title.y = element_blank(),
-        axis.text.y = element_blank(),
-        axis.ticks.y = element_blank(),
-        axis.line = element_blank())
-g4c1_dend
+df_go_enrich_MF_Pcla_exp <- go_enrich_MF_Pcla_exp@result %>%
+  filter(p.adjust < 0.05) %>%
+  mutate(geneID = str_replace_all(geneID, "/", ", "))
+if(nrow(df_go_enrich_MF_Pcla_exp) > 0){
+  write.table(df_go_enrich_MF_Pcla_exp, "../../data/analyzed_data/CAFE/results_cafe5_noPvirCopi/enrichment/clusterProfiler_Pcla_exp/GO_MF_Pcla_exp.tsv", quote = FALSE, sep = "\t", row.names = FALSE)
+}
 
-g4c1_pbs <- ggplot(df_pbs %>%
-                     dplyr::rename(CHR = Chr,
-                                   BP = Coord) %>%
-                     filter(CHR == "LG03_CM035475.1", 
-                            BP > region[1], BP < region[2],
-                            TargetPop == "Sapporo")) +
-  annotate("rect", xmin = 24500000, xmax = 25500000, ymin = -Inf, ymax = Inf,  fill = "red", alpha=.2) +
-  geom_point(aes(x = BP, y = PBS, color = Combination), alpha = 0.5, shape = 16, size = 0.5) +
-  scale_color_viridis_d(labels = c("Aomori-Kamakura-Sapporo",
-                                   "Aomori-Okinawa-Sapporo",
-                                   "Kamakura-Okinawa-Sapporo")) +
-  scale_x_continuous(labels = scales::label_comma(scale = 1/1000000)) + # 単位M(1000000)をつけるため値自体は1/1000000する
-  coord_cartesian(xlim = c(23000000, 26000000), ylim = c(0, 1.8)) +
-  xlab("Linkage group 3 (Mb)") +
-  # geom_text(data = dd$labels, aes(x = -y, y = x, label = label), hjust = 0) +
-  theme_classic() +
-  theme(axis.title.x = element_blank(),
-        legend.title = element_blank(),
-        legend.background = element_blank())#,
-# legend.position = c(0.1, 0.9))#,
-#       axis.text.y = element_blank(),
-#       axis.ticks.y = element_blank(),
-#       axis.line = element_blank())
+g1_MF_Pcla_exp <- upsetplot(go_enrich_MF_Pcla_exp)
+ggplot2::ggsave("../../data/analyzed_data/CAFE/results_cafe5_noPvirCopi/enrichment/clusterProfiler_Pcla_exp/UpsetPlot_MF.pdf", g1_MF_Pcla_exp, h=6, w=10)
 
-g4c1_gene <- ggplot(df_gtf_gene %>%
-                      filter(X4 > 24500000, X5 < 25500000), 
-                    aes(x = X4, y = 1, label = geneID)) +
-  annotate("rect", xmin = xmin, xmax = xmax, ymin = 0.8, ymax = 1.2, color = "black", fill = "black") +
-  annotate("segment", 
-           x = df_gtf_gene %>% pull(X5), 
-           xend = df_gtf_gene %>% pull(X4), 
-           y = 1, yend = 1) +
-  annotate("segment", 
-           x = df_gtf_gene %>% pull(X5), 
-           xend = df_gtf_gene %>% pull(X4), 
-           y = 1, yend = 1) + 
-  # ggrepel::geom_label_repel(max.overlaps = 10) +
-  annotate("text",
-           size = 1,
-           label = df_gtf_gene %>% pull(geneID),
-           x = (df_gtf_gene %>% pull(X4) + df_gtf_gene %>% pull(X5) ) /2,
-           y = c(rep(seq(0.5, 0.7, by = 0.1), as.integer(length(df_gtf_gene$X4)/3)), 0.5, 0.6)) +
-  xlab("Linkage group 3 (Mb)") +
-  # coord_cartesian(xlim = c(3124000, 3160000)) +
-  coord_cartesian(xlim = c(24500000, 25500000)) +
-  scale_x_continuous(labels = scales::label_comma(scale = 1/1000000)) + # 単位M(1000000)をつけるため値自体は1/1000000する
-  # ggdendro::theme_dendro() +
-  theme_classic() +
-  theme(plot.margin = unit(c(0,0,0,0), "null"), #top, right, bottom, left 
-        axis.title.y = element_blank(),
-        axis.ticks.y = element_blank(),
-        axis.text.y = element_blank(),
-        axis.line.y = element_blank(),
-        axis.line.x = element_line(),
-        panel.border = element_blank())
-# g4c1_gene
+g2_MF_Pcla_exp <- barplot(go_enrich_MF_Pcla_exp, 
+                          drop = TRUE, 
+                          showCategory = 10, 
+                          title = "GO Molecular Functions",
+                          font.size = 8)
+ggplot2::ggsave("../../data/analyzed_data/CAFE/results_cafe5_noPvirCopi/enrichment/clusterProfiler_Pcla_exp/BarPlot_MF.pdf", g2_MF_Pcla_exp, h=3, w=5)
 
-g4c1 <- ggplot(df_g4c1_t %>%
-                 transform(name = factor(name, levels = dd$labels$label)),
-               aes(x = Coord, y = name, col = AF)) +
-  geom_tile(linewidth = 1) +
-  # scale_color_viridis_c(option = "E") +
-  coord_cartesian(xlim = c(23000000, 26000000)) +
-  scale_x_continuous(labels = scales::label_comma(scale = 1/1000000)) + # 単位M(1000000)をつけるため値自体は1/1000000する
-  scale_color_gradientn(colours = pals::ocean.deep(100), name = "Allele \nfrequency") +
-  # xlab("Linkage group 17") +
-  xlab("Linkage group 3 (Mb)") +
+g3_MF_Pcla_exp <- dotplot(go_enrich_MF_Pcla_exp, orderBy = "x")
+ggplot2::ggsave("../../data/analyzed_data/CAFE/results_cafe5_noPvirCopi/enrichment/clusterProfiler_Pcla_exp/DotPlot_MF.pdf", g3_MF_Pcla_exp, h=4, w=6)
+
+g4_MF_Pcla_exp <- emapplot(go_enrich_MF_Pcla_exp %>% pairwise_termsim())
+ggplot2::ggsave("../../data/analyzed_data/CAFE/results_cafe5_noPvirCopi/enrichment/clusterProfiler_Pcla_exp/EncrichmentMap_MF.pdf", g4_MF_Pcla_exp, h=6, w=8)
+
+g4_MF_Pcla_exp <- goplot(go_enrich_MF_Pcla_exp, showCategory = 10)
+ggplot2::ggsave("../../data/analyzed_data/CAFE/results_cafe5_noPvirCopi/enrichment/clusterProfiler_Pcla_exp/EncrichedGOGraph_MF.pdf", g4_MF_Pcla_exp, h=6, w=8)
+
+g6_MF_Pcla_exp <- cnetplot(go_enrich_MF_Pcla_exp, categorySize="pvalue")
+ggplot2::ggsave("../../data/analyzed_data/CAFE/results_cafe5_noPvirCopi/enrichment/clusterProfiler_Pcla_exp/CategoryNet_MF.pdf", g6_MF_Pcla_exp, h=12, w=10)
+
+
+
+##### plot #####
+
+df_go_Pcla_exp <- list.files(paste0("../../data/analyzed_data/CAFE/results_cafe5_noPvirCopi/enrichment/clusterProfiler_Pcla_exp/"), 
+                             pattern = "*.tsv", full.names = TRUE, recursive=T) %>% 
+  map_df(~ data.table::fread(.)) %>%
+  mutate(Description = str_to_sentence(Description),
+         GeneRatio = str_split(GeneRatio, "/") %>% 
+           map_chr(1) %>% 
+           as.numeric() / str_split(GeneRatio, "/") %>% 
+           map_chr(2) %>% 
+           as.numeric()) %>%
+  # group_by(Type) %>%
+  arrange(qvalue) %>%
+  slice_head(n = 10)
+
+g4d <- ggplot(df_go_Pcla_exp,
+              aes(y = reorder(Description, -qvalue), x = GeneRatio, col = qvalue)) +
+  geom_point(shape = 16, size = 4) +#aes(size = Count),  , size= 4) +
+  # scale_x_discrete(labels = scales::label_wrap(40)) +
+  tidytext::scale_y_reordered() +
+  scale_color_viridis_c(name = expression(paste(italic(q), "-value"))) +
+  # scale_shape_manual(values = 15, labels = "Molecular Function") +
+  xlab("Gene ratio") +
+  ylab("GO term") +
   theme_bw() +
-  theme(
-    axis.title.y = element_blank(),
-    # axis.ticks = element_blank(),
-    axis.line.y = element_blank(),
-    axis.line.x = element_line(),
-    panel.border = element_blank(),
-    plot.margin = unit(c(0,0,0,0), "null"),
-    #axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
-  )
-# g4c1
-
-g4c1_pbs2 <- g4c1_pbs / g4c1 + plot_layout(heights = c(1, 2))
-ggsave("../figures/tmp/Figure4c_pbs.pdf", g4c1_pbs2, w = 6, h = 3)
-
- 
-
-library(cowplot)
-g4c1_0 <- plot_spacer() / plot_spacer() / g4c1_dend + plot_layout(heights = c(1, 6, 6))
-g4c1_1 <- g4c1_gene / g4c1_pbs / g4c1 + plot_layout(heights = c(1, 6, 6))
-# g4c <- g4c_0 + g4c_1 + plot_layout(widths = c(1, 5))
-g4c <- cowplot::plot_grid(g4c1_0, g4c1_1, ncol = 2, rel_widths = c(1, 6), align = "h")
-
-g4c
-ggsave("../figures/tmp/Figure4c.pdf", g4c, w=8, h=4)
-
-
-# BiocManager::install("ggbio")
-library(ggbio)
-# BiocManager::install("GenomicRanges")
-library(GenomicRanges)
-# BiocManager::install("rtracklayer")
-library(rtracklayer) # imports gff/bed/wig
-gff2 <- import("../../Data/Ref/Xu2021/v2/GCF_020424385.1_ASM2042438v2_genomic.gtf") # contains gene/mRNA/exon/CDS
-region <- c(23000000, 26000000)
-gr <- GRanges(seqnames = "LG03_CM035475.1", IRanges(region[1], region[2]), strand = "*")
-# wh <- genesymbol[c("LOC123758689", "LOC123761000", "LOC123758696")]
-# wh <- range(wh, ignore.strand = TRUE)
-p <- autoplot(gff2, which=gr) +
-  theme_bw()
-ggsave("../../ザリガニ論文_Sato_Makino/figures/tmp/Figure4c_gene.pdf", p, w = 4, h = 2)
-
-BiocManager::install("Sushi")
-library(Sushi)
-bdata <- df_gtf %>%
-  filter(X1 == "NC_059573.1",
-         X4 > region[1],
-         X5 < region[2],
-         X3 == "exon") %>%
-  dplyr::rename(chrom = X1,
-                start = X4,
-                stop = X5, 
-                gene = geneID,
-                score = X8,
-                strand = X7,
-                type = X3) %>%
-  mutate(strand = if_else(strand == "+", "1", "-1")) %>%
-  dplyr::select(chrom, start, stop, gene,
-                score, strand, type) %>%
-  ungroup()
-
-p <- Sushi::plotGenes(bdata, 
-                      "NC_059573.1",
-                      23000000,
-                      26000000,
-                      types = bdata$type,
-          maxrows = 50,
-          bheight = 0.08,
-          plotgenetype = "box",
-          bentline = FALSE,
-          col = "brown",
-          labeloffset = .2,
-          fontsize = 0.9,
-          arrowlength = 0.025,
-          labeltext = TRUE)
-
-df_gtf2 <- df_gtf %>%
-  
-
-df_gtf_exon <- df_gtf %>%
-  filter(X4 > region[1], X5 < region[2], X3 == "exon") %>%
-  filter(X1 == "NC_059573.1")
-xmin <- df_gtf_exon$X4
-xmax <- df_gtf_exon$X5
-df_gtf_gene <- df_gtf %>%
-  filter(X4 > region[1], X5 < region[2], X3 == "gene") %>%
-  filter(X1 == "NC_059573.1")
-
-#### Figure 4d Proclotting enzymes ####
-df_tpm <- read.table("../../ザリガニ論文_Sato_Makino/data/RNA-seq/unique_mapping/rawdata/crayfish_hisat2_stringtie_uniq_tpm_genes_2n1tpm20230104.tsv", header = TRUE) %>%
-  dplyr::rename(GeneID = ID) %>%
-  pivot_longer(cols = contains("_"), values_to = "TPM") %>%
-  separate(col = name, into = c("group", "no"), sep = "_") %>%
-  mutate(pop = str_sub(group, 1, 3),
-         group = case_when(group == "SEN0" ~ "Sendai Day 0",
-                           group == "SEN7" ~ "Sendai Day 7",
-                           group == "TON0" ~ "Sapporo Day 0",
-                           group == "TON7" ~ "Sapporo Day 7",
-                           group == "TON30" ~ "Sapporo Day 31",))
-
-g4d_proclo <- ggplot(df_tpm %>%
-                    filter(GeneID %in% c("LOC123756530", "LOC123758570")) %>%
-                    transform(group = factor(group, levels = c("Sendai Day 0", "Sendai Day 7", "Sapporo Day 0", "Sapporo Day 7", "Sapporo Day 31"))),
-                  aes(x = group, y = log2(TPM+1), col = pop, fill = pop)) +
-  geom_bar(stat = "summary", fun = "mean", width = 0.6) +
-  stat_summary(fun.data = "mean_se", geom = "errorbar",
-               aes(col = pop), width = 0, linewidth = 1.5) +
-  scale_x_discrete(label = c("Day 0", "Day 7", "Day 0", "Day 7", "Day 31")) +
-  scale_y_continuous(expand = c(0,0)) +
-  coord_cartesian(ylim=c(0,NA)) +
-  scale_color_manual(values = c("#a99e93", "#ebe1a9")) +
-  scale_fill_manual(values = c("#a99e93", "#ebe1a9")) +
-  ylab("Log2(TPM+1)") +
-  facet_wrap( ~ GeneID, scales = "free_y") +
-  theme_bw() +
-  theme(axis.title.x = element_blank(),
-        axis.text.x = element_text(hjust = 1, vjust = 1, angle = 45),
-        legend.position = "none",
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),
         strip.background = element_blank())
-
-g4d_proclo
-ggsave("../../ザリガニ論文_Sato_Makino/figures/tmp/Figure4d_proclotting.pdf", g4d_proclo, width = 2.6, height = 3.4)
+g4d
+ggplot2::ggsave("../../figures/tmp/Figure4d1.pdf", g4d, width = 4.5, height = 3)
 

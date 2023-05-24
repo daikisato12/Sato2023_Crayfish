@@ -1,7 +1,0 @@
-ID	Description	GeneRatio	BgRatio	pvalue	p.adjust	qvalue	geneID	Count
-R-DME-983712	Ion channel transport	15/380	38/3108	1.67624746931525e-05	0.00916907365715439	0.0084518161873895	Best1, SERCA, Trpm, Trpml, Vha16-1, CG33298, Vha55, nrv3, SPoCk, VhaSFD, Vha68-2, Vha44, VhaAC39-1, VhaPPA1-1, ClC-a	15
-R-DME-913709	O-linked glycosylation of mucins	8/380	15/3108	0.000137131047366804	0.0250035609698806	0.0230476391890172	Hml, Pgant5, Pgant1, C1GalTA, beta4GalNAcTA, SiaT, brn, Pgant6	8
-R-DME-917977	Transferrin endocytosis and recycling	8/380	15/3108	0.000137131047366804	0.0250035609698806	0.0230476391890172	Trpml, Vha16-1, Vha55, VhaSFD, Vha68-2, Vha44, VhaAC39-1, VhaPPA1-1	8
-R-DME-382551	Transport of small molecules	45/380	224/3108	0.000328687831818994	0.0442188003239794	0.0407597524394999	Ctl1, Ncc69, MRP, Ae2, trol, CG10444, bumpel, sordd1, Orct, Vmat, Best1, SERCA, CG15890, mnd, Trpm, Nhe3, Abcd3, Trpml, Vha16-1, Npc1a, nac, CG11655, Glut1, NaPi-III, CNT2, NAAT1, CG33298, Oatp26F, Ndae1, Vha55, CG6414, eIF2beta, nrv3, SPoCk, VhaSFD, Tsf2, Fer3HCH, Tret1-2, Vha68-2, Vha44, MICU3, VhaAC39-1, nebu, VhaPPA1-1, ClC-a	45
-R-DME-77387	Insulin receptor recycling	8/380	17/3108	0.000414397318644703	0.0442188003239794	0.0407597524394999	Vha16-1, InR, Vha55, VhaSFD, Vha68-2, Vha44, VhaAC39-1, VhaPPA1-1	8
-R-DME-425407	SLC-mediated transmembrane transport	19/380	70/3108	0.00048503254468716	0.0442188003239794	0.0407597524394999	Ctl1, Ncc69, Ae2, CG10444, bumpel, Orct, Vmat, mnd, Nhe3, nac, CG11655, Glut1, NaPi-III, CNT2, NAAT1, Oatp26F, Ndae1, Tret1-2, nebu	19

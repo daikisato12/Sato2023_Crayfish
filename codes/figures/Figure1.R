@@ -16,7 +16,6 @@ library(countrycode)
 library(jpndistrict)
 # library(iterators)
 # library(gtools) #mixedsort
-setwd("/Users/dsato/Dropbox/研究室/投稿論文/2020/ザリガニ論文/ザリガニ論文_Sato_Makino/codes/")
 
 #### Figure 1a Map ####
 world <- ggplot2::map_data("world")
@@ -57,13 +56,23 @@ ggsave("../figures/tmp/Figure1a_map.pdf", g1a, w = 10, h = 3)
 }
 
 #files <- list.files("./PSMC/") %>% str_subset("txt")
-files <- list.files("../data/PSMC/", recursive=T) %>% 
-  str_subset(".results.0.txt")
+files <- list.files("../../data/analyzed_data/PSMC/Ref_Pcla_dep8sites/bs/", recursive=T) %>% 
+  str_subset(".results.bs.0.txt")
+name_list <- c("atchafalaya" = "atchafalaya",
+               "sendai" = "sendai",
+               "SRR14457223" = "china1",
+               "SRR14457234" = "china2",
+               "SRR14457235" = "china3",
+               "SRR5115141" = "virginalis",
+               "SRR5115151" = "fallax",
+               "SRR5115153" = "alleni",
+               "zonangulus" = "zonangulus")
 df_psmc <- data.frame()
 for (file in files) {
-  pop <-  str_split(file,"\\.") %>% map_chr(1)
+  pop <- str_split(file,"\\.") %>% map_chr(1)
+  pop <- name_list[pop]
   
-  testdf <- read.delim("../data/PSMC/" + file, h=F)
+  testdf <- read.delim("../../data/analyzed_data/PSMC/Ref_Pcla_dep8sites/bs/" + file, h=F)
   YA <- testdf$V1
   Ne <- testdf$V2
   n.points <- nrow(testdf)
@@ -72,7 +81,7 @@ for (file in files) {
   Ne<-c(as.numeric(rbind(Ne[-n.points],Ne[-n.points])), Ne[n.points])
   
   df_t <- bind_cols(YearsAgo, Ne) %>%
-    rename("YearsAgo" = ...1, "Ne" = ...2) %>%
+    dplyr::rename("YearsAgo" = ...1, "Ne" = ...2) %>%
     mutate(Population = pop)
   
   df_psmc <- bind_rows(df_psmc, df_t)
@@ -80,18 +89,25 @@ for (file in files) {
 }
 
 spe_label <- c(expression(italic("P. alleni")), 
-               expression(italic("P. clarkii")),
+               expression(paste(italic("P. clarkii"), " (Atchafalaya)")),
+               expression(paste(italic("P. clarkii"), " (China 1)")),
+               expression(paste(italic("P. clarkii"), " (China 2)")),
+               # expression(paste(italic("P. clarkii"), " (Sendai)")),
                expression(italic("P. fallax")),
                expression(italic("P. virginalis")),
                expression(italic("P. zonangulus"))) 
 
-g1b <- ggplot(df_psmc, aes(x = YearsAgo, y = Ne)) +
+g1b <- ggplot(df_psmc %>%
+                mutate(Population = factor(Population,
+                                           levels = c("alleni", "atchafalaya", "china1", "china2", "china3", "sendai", "fallax", "virginalis", "zonangulus"))) %>%
+                filter(!Population %in% c("sendai", "china1")), 
+              aes(x = YearsAgo, y = Ne)) +
   annotate("rect", xmin = 1.17e4, xmax = 1.15e5, ymin = -Inf, ymax = Inf,  fill = "lightblue", alpha=.6) +
   geom_line(aes(x = YearsAgo, y = Ne, color = Population)) +
-  coord_cartesian(xlim = c(1e3, 4e6), ylim=c(0, 60)) +
+  coord_cartesian(xlim = c(5e2, 2e6), ylim=c(0, 40)) + # 40
   annotation_logticks(sides = "b", long = unit(2,"mm"), mid = unit(1,"mm"), size = .2) +
   scale_x_log10(labels = scales::trans_format("log10", scales::math_format(10^.x)), breaks = 10^(3:7)) +
-  scale_color_manual(values = c("#cd8c5c", "#d9333f", "#674598", "#0094c8", "#b8d200"), labels = spe_label) + #tol.rainbow(8)
+  scale_color_manual(values = c("#b28c6e", "#d9333f", "#a25768", "#887f7a", "#674598", "#0094c8", "#00a381", "#b8d200"), labels = spe_label) + #tol.rainbow(8)
   # labs(color = "Species") +
   xlab(expression(paste("Years ago (g = 1, µ = 4.59 × ", 10^{-9}, ")"))) +
   ylab(expression(paste("Effective population size (×", 10^{4}, ")"))) +
@@ -100,45 +116,14 @@ g1b <- ggplot(df_psmc, aes(x = YearsAgo, y = Ne)) +
         legend.title = element_blank(),
         legend.background = element_blank(),
         legend.key = element_blank(),
-        legend.position = c(0.66, 0.84)) +
+        legend.position = c(0.54, 0.8)) +
   guides(color = guide_legend(ncol = 2))
 g1b
-ggsave("../figures/tmp/Figure1b_PSMC.pdf", g1b, width=4, height=3)
+ggsave("../figures/tmp/Figure1b_PSMC_dep8.pdf", g1b, width=4, height=3)
 
 
 #### Figure 1c Pi 5kbp ####
-# calc_harmonic_mean <- function(n_li){
-#   calc_harmonic_mean_tmp <- function(n){
-#     if(n > 1){
-#       h <- 0
-#       for(i in seq(n-1)){
-#         h <- h + 1/i
-#       }
-#     }else{
-#       h <- NA
-#     }
-#     return(h)
-#   }
-#   return(lapply(n_li, calc_harmonic_mean_tmp) %>% unlist())
-# }
-# calc_harmonic_mean2 <- function(n_li){
-#   calc_harmonic_mean_tmp <- function(n){
-#     if(n > 1){
-#       h <- 0
-#       for(i in seq(n-1)){
-#         h <- h + 1/(i**2)
-#       }
-#     }else{
-#       h <- NA
-#     }
-#     return(h)
-#   }
-#   return(lapply(n_li, calc_harmonic_mean_tmp) %>% unlist())
-# }
-# calc_harmonic_mean(c(4,5,1,2,10))
-# calc_harmonic_mean2(c(4,5,1,2,10))
-
-list_files <- list.files(paste0("../../manuscript_tmp/data/pi/"), pattern = "*.subsampled.pi.5kb", full.names = TRUE, recursive=T)
+list_files <- list.files(paste0("../../data/analyzed_data/Pi/"), pattern = "*.subsampled.pi.5kb", full.names = TRUE, recursive=T)
 df_pi <- data.frame()
 for (i in 1:length(list_files)){
   # i <- 1
@@ -153,48 +138,9 @@ for (i in 1:length(list_files)){
 }
 colnames(df_pi) <- c("Sample", "Chr", "Coord", "N_SNPs", "Cover_fraction", "pi")
 
-# list_files_theta <- list.files(paste0("../../manuscript_tmp/data/theta/"), pattern = "*.subsampled.theta.3kb", full.names = TRUE, recursive=T)
-# df_theta <- data.frame()
-# for (i in 1:length(list_files_theta)){
-#   # i <- 1
-#   sample_name <- list_files_theta[i] %>%
-#     basename() %>%
-#     str_split("\\.") %>%
-#     map_chr(1)
-#   df_theta <- bind_rows(df_theta, 
-#                         data.frame(Sample = sample_name,
-#                                    read.table(list_files_theta[i], header = F))
-#   )
-# }
-# colnames(df_theta) <- c("Sample", "Chr", "Coord", "N_SNPs", "Cover_fraction", "theta")
-
-list_files_TajimaD <- list.files(paste0("../../manuscript_tmp/data/TajimaD/"), pattern = "*.subsampled.TajimaD.5kb", full.names = TRUE, recursive=T)
-df_TajimaD <- data.frame()
-for (i in 1:length(list_files_TajimaD)){
-  # i <- 1
-  sample_name <- list_files_TajimaD[i] %>%
-    basename() %>%
-    str_split("\\.") %>%
-    map_chr(1)
-  df_TajimaD <- bind_rows(df_TajimaD, 
-                        data.frame(Sample = sample_name,
-                                   read.table(list_files_TajimaD[i], header = F))
-  )
-}
-colnames(df_TajimaD) <- c("Sample", "Chr", "Coord", "N_SNPs", "Cover_fraction", "TajimaD")
-
 df_pi_2 <- df_pi %>%
   filter(pi != "na") %>%
-  # left_join(df_theta) %>%
-  left_join(df_TajimaD) %>%
-  mutate(pi = as.numeric(pi),
-         # theta = as.numeric(theta),
-         TajimaD = as.numeric(TajimaD)) %>% #,
-         # h = calc_harmonic_mean(N_SNPs),
-         # h2 = calc_harmonic_mean2(N_SNPs),
-         # S = theta * h,
-         # C = ((((N_SNPs+1)/3*(N_SNPs-1))-1/h)*S)/h + ((2*(N_SNPs**2+N_SNPs+3)/(9*N_SNPs*(N_SNPs-1))) - (N_SNPs+2)/(N_SNPs*h) + h2/(h**2)) * S*(S-1) / (h**2 + h2),
-         # D = (pi - theta) / C) %>%
+  mutate(pi = as.numeric(pi)) %>%#,
   mutate(Sample = case_when(Sample == "NewOrleans" ~ "New Orleans",
                             Sample == "triunfo2" ~ "Triunfo",
                             Sample == "atchafalaya2" ~ "Atchafalaya",
@@ -209,60 +155,19 @@ df_pi_2 <- df_pi %>%
                              TRUE ~ "US")) %>%
   transform(Sample = factor(Sample, levels = c("New Orleans", "Triunfo", "Atchafalaya", "Kamakura", "Sapporo", "Aomori", "Okinawa")))
 
-g1c <- #ggplot(df_pi_1kbp_2, aes(x = Sample, y = pi, fill = Sample)) +
-  ggpubr::ggerrorplot(df_pi_2, #%>%
-                        # filter(20 < N_SNPs, 30 > N_SNPs, !is.na(TajimaD)), 
+g1c <- ggpubr::ggerrorplot(df_pi_2,
               x = "Sample", y = "pi", color = "Country", 
               desc_stat = "mean_ci", size = 1, alpha = 0.5) +
-  # geom_boxplot(aes(x = Sample, y = pi, fill = Sample), outlier.colour = NA, alpha = 0.5) +
-  # geom_signif(comparisons = list(c("Kamakura", "Aomori"),
-  #                                c("Kamakura", "Okinawa")), 
-  #             
-  #             test = "wilcox.test",
-  #             y_position = 0.012,
-  #             tip_length = 0.01) +
-  # coord_cartesian(ylim = c(0.0027, 0.004)) + # 1kbp
-  # coord_cartesian(ylim = c(0.0025, 0.0036)) + # 2kbp
-  # coord_cartesian(ylim = c(0.0023, 0.0035)) + # 3kbp
-  # coord_cartesian(ylim = c(0.00215, 0.0032)) + # 5kbp
-  # coord_cartesian(ylim = c(0.0015, 0.0036)) + # 10kbp
   scale_y_continuous(labels = scales::label_number(scale = 1000),
   breaks = seq(0,0.01,0.0002)) +
-  # scale_fill_manual(values = tol.rainbow(7)) +
   scale_color_manual(values = c("#e9546b", "#84a2d4")) +
   ylab(expression(italic(pi) (10^-3))) +
-  # ylab(expression(paste("Tajima's ", italic(D)))) +
   theme_bw() +
   theme(axis.text.x = element_text(hjust = 1, vjust = 1, angle = 45),
         axis.title.x = element_blank(),
         legend.position = "none")
 g1c
 ggsave("../figures/tmp/Figure1c_Pi_5kbp.pdf", g1c, w = 3, h = 3)
-
-# g1c_2 <- #ggplot(df_pi_1kbp_2, aes(x = Sample, y = pi, fill = Sample)) +
-#   ggplot(df_pi_2, aes(x = N_SNPs, y = D, color = Country, shape = Sample)) +
-#   geom_point(alpha = 0.8) +
-#   # geom_boxplot(aes(x = Sample, y = pi, fill = Sample), outlier.colour = NA, alpha = 0.5) +
-#   # geom_signif(comparisons = list(c("Kamakura", "Aomori"),
-#   #                                c("Kamakura", "Okinawa")), 
-#   #             
-#   #             test = "wilcox.test",
-#   #             y_position = 0.012,
-#   #             tip_length = 0.01) +
-#   # coord_cartesian(ylim = c(0.0027, 0.004)) + # 1kbp
-#   # coord_cartesian(ylim = c(0.0025, 0.0036)) + # 2kbp
-#   # coord_cartesian(ylim = c(0.0023, 0.0035)) + # 3kbp
-#   # coord_cartesian(ylim = c(0.00215, 0.0032)) + # 5kbp
-#   # scale_y_continuous(labels = scales::label_number(scale = 1000),
-#   #                    breaks = seq(0,0.01,0.0005)) +
-#   # scale_fill_manual(values = tol.rainbow(7)) +
-#   scale_color_manual(values = c("#e9546b", "#84a2d4")) +
-#   scale_shape_manual(values = c(16, 17, 18, 15, 3, 9, 8)) +
-#   # ylab(expression(italic(pi) (10^-3))) +
-#   ylab(expression(paste("Tajima's ", italic(D)))) +
-#   theme_bw() +
-#   theme(axis.title.x = element_blank())
-# g1c_2
 
 
 ##### analysis #####
@@ -284,18 +189,12 @@ df_fst <- read.table("../data/Fst/pooled_7pops_indelfiltered_mincov4_maxcov16_5k
   group_by(`Pop1-Pop2`) %>%
   summarize(Fst = mean(Fst, na.rm = T)) %>%
   separate(col = `Pop1-Pop2`, into = c("Pop1", "Pop2"), sep = "-") #%>%
-# transform(Pop1 = factor(Pop1, levels = c("New Orleans", "Triunfo", "Atchafalaya", "Kamakura", "Tonden", "Aomori", "Okinawa")),
-# Pop2 = factor(Pop2, levels = c("New Orleans", "Triunfo", "Atchafalaya", "Kamakura", "Tonden", "Aomori", "Okinawa")))
 
 ##### Heatmap visualization #####
 g1d_heat <- ggplot(df_fst, aes(x = Pop1, y = Pop2)) +
   geom_tile(aes(fill = Fst)) +
-  # scale_fill_viridis_c(option = "A", direction = -1,
-  #                      name = expression(italic(F)[ST])) +
   scale_fill_gradientn(colors = rev(pals::brewer.brbg(100)), 
                         name = expression(italic(F)[ST])) +
-  # scale_fill_gradientn(colours=c("#fef4f4","#abced8","#524e4d"), 
-  #                      name = expression(italic(F)[ST])) +
   theme_classic() +
   theme(axis.text.x = element_text(hjust = 1, vjust = 1, angle = 45),
         axis.title = element_blank(),
@@ -324,15 +223,10 @@ df_fst_network <- df_fst %>%
 
 g1d_net <- ggplot(df_fst_network, aes(x = x, y = y, xend = xend, yend = yend)) +
   ggnetwork::geom_edges(aes(linewidth = Fst, color = Fst)) +
-  # scale_color_viridis_c(option = "A", 
-  #                       name = expression(italic(F)[ST])) +
   scale_color_gradientn(colors = rev(pals::brewer.brbg(100)), 
                         name = expression(italic(F)[ST])) +
   new_scale_colour() +
   ggnetwork::geom_nodes(aes(color = Country), size = 10) +
-  # ggnetwork::geom_nodelabel_repel(aes(label = Pop1),
-  #                                 fontface = "bold",
-  #                                 box.padding = unit(1, "lines"))+
   scale_color_manual(values = c("#e9546b", "#84a2d4")) +
   theme_minimal() + 
   theme(panel.grid=element_blank()) +
@@ -344,48 +238,5 @@ ggsave("../figures/tmp/Figure1d_Fst_network.pdf", g1d_net, w = 5.6, h = 6)
 
 
 
-#### Figure 1e TreeMix ####
-library(RColorBrewer)
-library(R.utils)
-source("../codes/analysis/treemix/src/plotting_funcs.R")
-prefix="../data/treemix/pooled_7pops.noN.LDpruned"
-pdf("../figures/tmp/Figure1e_treemix.pdf", w = 6, h = 5)
-plot_tree(cex=0.8,prefix)
-dev.off()
-
-prefix="../data/treemix/migration/pooled_7pops.noN.LDpruned"
-pdf("../figures/tmp/Figure1e_treemix_migration.pdf", w = 12, h = 10)
-par(mfrow=c(3,3))
-for(edge in 0:7){
-  plot_tree(cex=0.8,paste0(prefix,".",edge))
-  title(paste(edge,"edges"))
-}
-dev.off()
-
-pdf("../figures/tmp/Figure1e_treemix_migration_residual.pdf", w = 12, h = 10)
-par(mfrow=c(3,3), new = TRUE)
-for(edge in 0:7){
-  plot_resid(stem=paste0(prefix,".",edge),pop_order="../data/treemix/migration/crayfish.list")
-}
-dev.off()
-
-
-install.packages("OptM")
-library(OptM)
-res.optM <- optM("../data/treemix/OptM/rawdata/",
-  orientagraph = F,
-  tsv = "../data/treemix/OptM.tsv",
-  method = "linear",
-  ignore = NULL,
-  thresh = 0.05,
-)
-
-res.optM$out
-
-plot_optM(res.optM, method = "linear", plot = TRUE, pdf = "../figures/tmp/Figure1e_treemix_migration_OptM.pdf")
-
-pdf("../figures/tmp/Figure1e_treemix_migration_2times.pdf", w = 6, h = 5)
-plot_tree(cex=0.8,paste0(prefix,".2"))
-dev.off()
-
-
+#### Figure 1e ####
+# Created by iTOL (https://itol.embl.de)
