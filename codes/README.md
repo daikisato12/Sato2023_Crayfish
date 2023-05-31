@@ -29,9 +29,7 @@ ${data}
 │   ├── fastq
 │   │   ├── post_fastp
 │   │   │   └── post_fastqc
-│   │   ├── rawdata
-│   │   ├── subsample
-│   │   └── tmp_reseq
+│   │   └── rawdata
 │   └── mapped_reads
 │       └── mpileup
 │           ├── fst
