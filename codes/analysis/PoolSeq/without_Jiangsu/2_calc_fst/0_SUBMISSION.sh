@@ -1,1 +1,0 @@
-qsub -l s_vmem=20G -l mem_req=20G j1_calc_fst_4_16_5kbp.sh

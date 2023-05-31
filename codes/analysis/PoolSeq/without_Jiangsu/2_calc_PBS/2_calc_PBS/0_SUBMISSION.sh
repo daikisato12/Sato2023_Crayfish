@@ -1,1 +1,0 @@
-qsub -l s_vmem=10G -l mem_req=10G j2_calc_fst_5kbp_step1kbp.sh
